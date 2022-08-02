@@ -39,7 +39,6 @@ mlp_dim: 512
 latent_dim: 50
 
 # wandb (insert your own)
-use_wandb: True
 wandb_entity: zzzanghun
 
 # misc
@@ -57,5 +56,6 @@ PI_PARAMETERIZED: False
 PI_EACH_PARAMETERIZED: False
 
 # frequently change
+use_wandb: True
 wandb_project: none
 mixture_coef: 0.05
