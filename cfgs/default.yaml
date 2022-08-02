@@ -51,3 +51,9 @@ eval_freq: 20000
 eval_episodes: 10
 save_video: false
 save_model: false
+
+#custom idea
+CHOICE_ACTION_POLICY_AND_PLAN_BY_Q: False
+CHOICE_ACTION_START_TRAINING_STEPS : 100_000
+PI_PARAMETERIZED: False
+PI_EACH_PARAMETERIZED: False

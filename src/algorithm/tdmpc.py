@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from copy import deepcopy
 import algorithm.helper as h
+from collections import deque, OrderedDict
 
 
 class TOLD(nn.Module):
@@ -13,7 +14,30 @@ class TOLD(nn.Module):
 		self._encoder = h.enc(cfg)
 		self._dynamics = h.mlp(cfg.latent_dim+cfg.action_dim, cfg.mlp_dim, cfg.latent_dim)
 		self._reward = h.mlp(cfg.latent_dim+cfg.action_dim, cfg.mlp_dim, 1)
-		self._pi = h.mlp(cfg.latent_dim, cfg.mlp_dim, cfg.action_dim)
+		if cfg.PI_PARAMETERIZED:
+			self._pi = nn.Sequential(
+				nn.Linear(cfg.latent_dim, cfg.mlp_dim),
+				nn.ELU(),
+				nn.Linear(cfg.mlp_dim, cfg.mlp_dim),
+				nn.ELU()
+			)
+			self._original_parameterized_net = nn.Linear(512, cfg.action_dim)
+			self._scale_parameterized_net = nn.Sequential(nn.Linear(512, cfg.action_dim),
+													nn.Sigmoid())
+			self._bias_parameterized_net = nn.Linear(512, cfg.action_dim)
+		elif cfg.PI_EACH_PARAMETERIZED:
+			self._pi = nn.Sequential(
+				nn.Linear(cfg.latent_dim, cfg.mlp_dim),
+				nn.ELU(),
+				nn.Linear(cfg.mlp_dim, cfg.mlp_dim),
+				nn.ELU()
+			)
+			policy_parameterized_net_dict = OrderedDict()
+			for i in range(cfg.action_dim):
+				policy_parameterized_net_dict["policy_parameterized_{0}".format(i)] = nn.Linear(cfg.mlp_dim, 1)
+			self._pi_each_parameterized_net = nn.Sequential(policy_parameterized_net_dict)
+		else:
+			self._pi = h.mlp(cfg.latent_dim, cfg.mlp_dim, cfg.action_dim)
 		self._Q1, self._Q2 = h.q(cfg), h.q(cfg)
 		self.apply(h.orthogonal_init)
 		for m in [self._reward, self._Q1, self._Q2]:
@@ -36,7 +60,21 @@ class TOLD(nn.Module):
 
 	def pi(self, z, std=0):
 		"""Samples an action from the learned policy (pi)."""
-		mu = torch.tanh(self._pi(z))
+		if self.cfg.PI_PARAMETERIZED:
+			z = self._pi(z)
+			a = self._originar_parameterized_net(z)
+			k = self._scale_parameterized_net(z)
+			a0 = self._bias_parameterized_net(z)
+			mu = torch.tanh(k * a - k * a0)
+		elif self.cfg.PI_EACH_PARAMETERIZED:
+			mu = torch.zeros((z.shape[0], self.cfg.action_dim), dtype=torch.float32, device=z.device)
+			z = self._pi(z)
+			for i in range(len(self._pi_each_parameterized_net)):
+				action_parameterized = self._pi_each_parameterized_net[i](z)
+				mu[:, i] = action_parameterized[:, 0]
+			mu = torch.tanh(mu)
+		else:
+			mu = torch.tanh(self._pi(z))
 		if std > 0:
 			std = torch.ones_like(mu) * std
 			return h.TruncatedNormal(mu, std).sample(clip=0.3)
@@ -59,6 +97,7 @@ class TDMPC():
 		self.optim = torch.optim.Adam(self.model.parameters(), lr=self.cfg.lr)
 		self.pi_optim = torch.optim.Adam(self.model._pi.parameters(), lr=self.cfg.lr)
 		self.aug = h.RandomShiftsAug(cfg)
+		self.action_type = deque(maxlen=cfg.episode_length)
 		self.model.eval()
 		self.model_target.eval()
 
@@ -148,6 +187,19 @@ class TDMPC():
 		a = mean
 		if not eval_mode:
 			a += std * torch.randn(self.cfg.action_dim, device=std.device)
+
+		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
+			if step > self.cfg.CHOICE_ACTION_START_TRAINING_STEPS:
+				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
+				pi_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), pi_action))
+				plan_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), torch.unsqueeze(a, 0)))
+				if pi_action_q > plan_action_q:
+					self.action_type.append(1)
+					return pi_action[0]
+				else:
+					self.action_type.append(0)
+					return a
+
 		return a
 
 	def update_pi(self, zs):
@@ -229,4 +281,5 @@ class TDMPC():
 				'pi_loss': pi_loss,
 				'total_loss': float(total_loss.mean().item()),
 				'weighted_loss': float(weighted_loss.mean().item()),
-				'grad_norm': float(grad_norm)}
+				'grad_norm': float(grad_norm),
+				'action_type': float(sum(self.action_type)/len(self.action_type))}
