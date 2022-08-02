@@ -275,11 +275,22 @@ class TDMPC():
 			h.ema(self.model, self.model_target, self.cfg.tau)
 
 		self.model.eval()
-		return {'consistency_loss': float(consistency_loss.mean().item()),
-				'reward_loss': float(reward_loss.mean().item()),
-				'value_loss': float(value_loss.mean().item()),
-				'pi_loss': pi_loss,
-				'total_loss': float(total_loss.mean().item()),
-				'weighted_loss': float(weighted_loss.mean().item()),
-				'grad_norm': float(grad_norm),
-				'action_type': float(sum(self.action_type)/len(self.action_type))}
+
+		if len(self.action_type) > 0:
+			return {'consistency_loss': float(consistency_loss.mean().item()),
+					'reward_loss': float(reward_loss.mean().item()),
+					'value_loss': float(value_loss.mean().item()),
+					'pi_loss': pi_loss,
+					'total_loss': float(total_loss.mean().item()),
+					'weighted_loss': float(weighted_loss.mean().item()),
+					'grad_norm': float(grad_norm),
+					'action_type': float(sum(self.action_type)/len(self.action_type))}
+		else:
+			return {'consistency_loss': float(consistency_loss.mean().item()),
+					'reward_loss': float(reward_loss.mean().item()),
+					'value_loss': float(value_loss.mean().item()),
+					'pi_loss': pi_loss,
+					'total_loss': float(total_loss.mean().item()),
+					'weighted_loss': float(weighted_loss.mean().item()),
+					'grad_norm': float(grad_norm),
+					'action_type': 0.0}
