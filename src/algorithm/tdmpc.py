@@ -62,7 +62,7 @@ class TOLD(nn.Module):
 		"""Samples an action from the learned policy (pi)."""
 		if self.cfg.PI_PARAMETERIZED:
 			z = self._pi(z)
-			a = self._originar_parameterized_net(z)
+			a = self._original_parameterized_net(z)
 			k = self._scale_parameterized_net(z)
 			a0 = self._bias_parameterized_net(z)
 			mu = torch.tanh(k * a - k * a0)
