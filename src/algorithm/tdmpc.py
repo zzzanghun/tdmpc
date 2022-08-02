@@ -189,7 +189,7 @@ class TDMPC():
 			a += std * torch.randn(self.cfg.action_dim, device=std.device)
 
 		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
-			if step > self.cfg.CHOICE_ACTION_START_TRAINING_STEPS:
+			if step > (self.cfg.CHOICE_ACTION_START_TRAINING_STEPS/self.cfg.action_repeat):
 				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 				pi_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), pi_action))
 				plan_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), torch.unsqueeze(a, 0)))
