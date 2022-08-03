@@ -6,11 +6,13 @@ import numpy as np
 import torch
 import pandas as pd
 from termcolor import colored
+import matplotlib.pyplot as plt
 from omegaconf import OmegaConf
 
 
 CONSOLE_FORMAT = [('episode', 'E', 'int'), ('env_step', 'S', 'int'), ('episode_reward', 'R', 'float'), ('total_time', 'T', 'time')]
 AGENT_METRICS = ['consistency_loss', 'reward_loss', 'value_loss', 'total_loss', 'weighted_loss', 'pi_loss', 'grad_norm']
+PROJECT_HOME = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, 'results')
 
 
 def make_dir(dir_path):
@@ -154,3 +156,62 @@ class Logger(object):
 			self._eval.append(np.array([d[keys[0]], d[keys[1]]]))
 			pd.DataFrame(np.array(self._eval)).to_csv(self._log_dir / 'eval.log', header=keys, index=None)
 		self._print(d, category)
+
+def extract_results(episode_results):
+	if not type(episode_results) == np.ndarray:
+		episode_results = np.asarray(episode_results)
+
+	mean_results = episode_results.mean(axis=0)
+	assert len(mean_results) == len(episode_results[0])
+	max_results = episode_results.max(axis=0)
+	assert len(max_results) == len(episode_results[0])
+	min_results = episode_results.min(axis=0)
+	assert len(min_results) == len(episode_results[0])
+
+	return mean_results, max_results, min_results
+
+def graph_results(mean_results, max_results, min_results, cfg, mode):
+	now = datetime.datetime.now()
+	local_now = now.astimezone()
+
+	graph_save_dir = os.path.join(PROJECT_HOME, cfg.name_for_result_save, 'graph', "{}_{}_{}".format(
+			local_now.month, local_now.day, local_now.hour))
+	if not os.path.exists(graph_save_dir):
+		os.mkdir(graph_save_dir)
+
+	plt.figure(figsize=(12, 5))
+	plt.plot(
+		[i for i in len(mean_results)],
+		# mean_1[:len(step)],
+		mean_results
+	)
+	plt.fill_between(
+		[i for i in len(mean_results)],
+		# min_1[:len(step)],
+		# max_1[:len(step)],
+		min_results,
+		max_results,
+		alpha=0.2
+	)
+	plt.title(''.format(cfg.name_for_result_save), fontsize=30)
+	plt.ylabel("Train Episode Reward", fontsize=18)
+	plt.xlabel("Num Episode", fontsize=18)
+	plt.legend(loc=2, fancybox=True, framealpha=0.3)
+	# plt.subplots_adjust(left = 0, bottom = 0, right = 1, top = 1)
+	plt.savefig("{0}.png".format(
+		os.path.join(graph_save_dir, mode)), bbox_inches='tight')
+
+	plt.show()
+
+def save_csv(mean_results, max_results, min_results, cfg, mode):
+	now = datetime.datetime.now()
+	local_now = now.astimezone()
+
+	csv_save_dir = os.path.join(PROJECT_HOME, cfg.name_for_result_save, 'csv', "{}_{}_{}".format(
+			local_now.month, local_now.day, local_now.hour))
+	if not os.path.exists(csv_save_dir):
+		os.mkdir(csv_save_dir)
+
+	dict_for_save_csv = {'MEAN': mean_results, 'MAX': max_results, 'MIN': min_results}
+	pd_data_frame = pd.DataFrame(dict_for_save_csv)
+	pd_data_frame.to_csv("{0}.csv".format(os.path.join(csv_save_dir, mode)))
