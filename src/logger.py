@@ -178,7 +178,7 @@ def graph_results(mean_results, max_results, min_results, cfg, mode):
 	graph_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, 'graph', "{}_{}_{}".format(
 			local_now.month, local_now.day, local_now.hour))
 	if not os.path.exists(graph_save_dir):
-		os.mkdir(graph_save_dir)
+		os.makedirs(graph_save_dir, exist_ok=True)
 
 	plt.figure(figsize=(12, 5))
 	plt.plot(
@@ -211,7 +211,7 @@ def save_csv(mean_results, max_results, min_results, cfg, mode):
 	csv_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, 'csv', "{}_{}_{}".format(
 			local_now.month, local_now.day, local_now.hour))
 	if not os.path.exists(csv_save_dir):
-		os.mkdir(csv_save_dir)
+		os.makedirs(csv_save_dir, exist_ok=True)
 
 	dict_for_save_csv = {'MEAN': mean_results, 'MAX': max_results, 'MIN': min_results}
 	pd_data_frame = pd.DataFrame(dict_for_save_csv)
