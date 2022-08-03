@@ -182,12 +182,12 @@ def graph_results(mean_results, max_results, min_results, cfg, mode):
 
 	plt.figure(figsize=(12, 5))
 	plt.plot(
-		[i for i in len(mean_results)],
+		[i for i in range(len(mean_results))],
 		# mean_1[:len(step)],
 		mean_results
 	)
 	plt.fill_between(
-		[i for i in len(mean_results)],
+		[i for i in range(len(mean_results))],
 		# min_1[:len(step)],
 		# max_1[:len(step)],
 		min_results,
