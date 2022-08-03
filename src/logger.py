@@ -175,8 +175,8 @@ def graph_results(mean_results, max_results, min_results, cfg, mode):
 	now = datetime.datetime.now()
 	local_now = now.astimezone()
 
-	graph_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, "{}_{}_{}".format(
-			local_now.month, local_now.day, local_now.hour), 'graph')
+	graph_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, "{}_{}_{}_{}".format(
+			local_now.month, local_now.day, local_now.hour, local_now.minute), 'graph')
 	if not os.path.exists(graph_save_dir):
 		os.makedirs(graph_save_dir, exist_ok=True)
 
@@ -207,8 +207,8 @@ def save_csv(mean_results, max_results, min_results, cfg, mode):
 	now = datetime.datetime.now()
 	local_now = now.astimezone()
 
-	csv_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, "{}_{}_{}".format(
-			local_now.month, local_now.day, local_now.hour), 'csv')
+	csv_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, "{}_{}_{}_{}".format(
+			local_now.month, local_now.day, local_now.hour, local_now.minute), 'csv')
 	if not os.path.exists(csv_save_dir):
 		os.makedirs(csv_save_dir, exist_ok=True)
 
