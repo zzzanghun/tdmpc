@@ -80,7 +80,7 @@ class VideoRecorder:
 
 class Logger(object):
 	"""Primary logger object. Logs either locally or using wandb."""
-	def __init__(self, log_dir, cfg):
+	def __init__(self, log_dir, cfg, name):
 		self._log_dir = make_dir(log_dir)
 		self._model_dir = make_dir(self._log_dir / 'models')
 		self._save_model = cfg.save_model
@@ -88,6 +88,7 @@ class Logger(object):
 		self._seed = cfg.seed
 		self._cfg = cfg
 		self._eval = []
+		self._name = name
 		print_run(cfg)
 		project, entity = cfg.get('wandb_project', 'none'), cfg.get('wandb_entity', 'none')
 		run_offline = not cfg.get('use_wandb', False) or project == 'none' or entity == 'none'
@@ -100,7 +101,7 @@ class Logger(object):
 				import wandb
 				wandb.init(project=project,
 						entity=entity,
-						name=str(cfg.seed),
+						name=self._name,
 						group=self._group,
 						tags=cfg_to_group(cfg, return_list=True) + [f'seed:{cfg.seed}'],
 						dir=self._log_dir,
