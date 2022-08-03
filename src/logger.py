@@ -174,7 +174,7 @@ def graph_results(mean_results, max_results, min_results, cfg, mode):
 	now = datetime.datetime.now()
 	local_now = now.astimezone()
 
-	graph_save_dir = os.path.join(PROJECT_HOME, cfg.name_for_result_save, 'graph', "{}_{}_{}".format(
+	graph_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, 'graph', "{}_{}_{}".format(
 			local_now.month, local_now.day, local_now.hour))
 	if not os.path.exists(graph_save_dir):
 		os.mkdir(graph_save_dir)
@@ -207,7 +207,7 @@ def save_csv(mean_results, max_results, min_results, cfg, mode):
 	now = datetime.datetime.now()
 	local_now = now.astimezone()
 
-	csv_save_dir = os.path.join(PROJECT_HOME, cfg.name_for_result_save, 'csv', "{}_{}_{}".format(
+	csv_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, 'csv', "{}_{}_{}".format(
 			local_now.month, local_now.day, local_now.hour))
 	if not os.path.exists(csv_save_dir):
 		os.mkdir(csv_save_dir)
