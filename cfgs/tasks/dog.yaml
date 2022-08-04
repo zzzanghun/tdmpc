@@ -4,3 +4,5 @@ iterations: 8
 latent_dim: 100
 batch_size: 2048
 lr: 3e-4
+
+CHOICE_ACTION_START_TRAINING_STEPS : ${train_steps}/5
