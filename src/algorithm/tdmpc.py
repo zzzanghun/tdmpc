@@ -100,7 +100,7 @@ class TDMPC():
 		self.action_type = deque(maxlen=cfg.episode_length)
 		self.model.eval()
 		self.model_target.eval()
-		self.choice_action_start_step = (int(cfg.train_steps) / 5) / int(cfg.action_repeat)
+		self.choice_action_start_step = int(int(cfg.train_steps) / 5)
 
 	def state_dict(self):
 		"""Retrieve state dict of TOLD model, including slow-moving target network."""
@@ -190,7 +190,7 @@ class TDMPC():
 			a += std * torch.randn(self.cfg.action_dim, device=std.device)
 
 		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
-			if step > self.choice_action_start_step:
+			if step >= self.choice_action_start_step:
 				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 				pi_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), pi_action))
 				plan_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), torch.unsqueeze(a, 0)))
