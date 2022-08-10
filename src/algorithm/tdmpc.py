@@ -208,7 +208,7 @@ class TDMPC():
 			if t0:
 				self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
 			coin = np.random.random()  # 0 ~ 1
-			if coin < self.epsilon:
+			if coin > self.epsilon:
 				if step >= self.choice_action_start_step:
 					pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 					pi_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), pi_action))
