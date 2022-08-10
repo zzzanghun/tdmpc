@@ -92,6 +92,7 @@ class TDMPC():
 		self.cfg = cfg
 		self.device = torch.device('cuda')
 		self.std = h.linear_schedule(cfg.std_schedule, 0)
+		self.epsilon = h.linear_schedule(cfg.std_schedule, 0)
 		self.model = TOLD(cfg).cuda()
 		self.model_target = deepcopy(self.model)
 		self.optim = torch.optim.Adam(self.model.parameters(), lr=self.cfg.lr)
@@ -200,6 +201,20 @@ class TDMPC():
 				else:
 					self.action_type.append(0)
 					return a
+		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_EPSILON:
+			self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
+			coin = np.random.random()  # 0 ~ 1
+			if coin < self.epsilon:
+				if step >= self.choice_action_start_step:
+					pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
+					pi_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), pi_action))
+					plan_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), torch.unsqueeze(a, 0)))
+					if pi_action_q > plan_action_q:
+						self.action_type.append(1)
+						return pi_action[0]
+					else:
+						self.action_type.append(0)
+						return a
 
 		return a
 
