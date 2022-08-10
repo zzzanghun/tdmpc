@@ -101,7 +101,10 @@ class TDMPC():
 		self.action_type = deque(maxlen=cfg.episode_length)
 		self.model.eval()
 		self.model_target.eval()
-		self.choice_action_start_step = int(int(cfg.train_steps) / 5)
+		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
+			self.choice_action_start_step = int(int(cfg.train_steps) / 5)
+		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_EPSILON:
+			self.choice_action_start_step = int(int(cfg.train_steps) / 10)
 
 	def state_dict(self):
 		"""Retrieve state dict of TOLD model, including slow-moving target network."""
@@ -202,7 +205,8 @@ class TDMPC():
 					self.action_type.append(0)
 					return a
 		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_EPSILON:
-			self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
+			if t0:
+				self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
 			coin = np.random.random()  # 0 ~ 1
 			if coin < self.epsilon:
 				if step >= self.choice_action_start_step:
