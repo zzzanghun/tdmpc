@@ -201,9 +201,8 @@ class TDMPC():
 				if pi_action_q > plan_action_q:
 					self.action_type.append(1)
 					return pi_action[0]
-				else:
-					self.action_type.append(0)
-					return a
+			self.action_type.append(0)
+			return a
 		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_EPSILON:
 			if t0:
 				self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
@@ -216,9 +215,9 @@ class TDMPC():
 					if pi_action_q > plan_action_q:
 						self.action_type.append(1)
 						return pi_action[0]
-					else:
-						self.action_type.append(0)
-						return a
+
+			self.action_type.append(0)
+			return a
 
 		return a
 
