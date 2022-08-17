@@ -47,7 +47,7 @@ exp_name: default
 eval_freq: 20000
 eval_episodes: 10
 save_video: false
-save_model: false
+save_model: True
 
 # custom idea
 CHOICE_ACTION_POLICY_AND_PLAN_BY_Q: False
