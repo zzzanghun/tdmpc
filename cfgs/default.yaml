@@ -46,7 +46,7 @@ seed: 1
 exp_name: default
 eval_freq: 20000
 eval_episodes: 10
-save_video: false
+save_video: True
 save_model: True
 
 # custom idea
