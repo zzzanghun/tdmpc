@@ -46,7 +46,7 @@ seed: 1
 exp_name: default
 eval_freq: 20000
 eval_episodes: 10
-save_video: True
+save_video: False
 save_model: True
 
 # custom idea
@@ -55,6 +55,7 @@ CHOICE_ACTION_POLICY_AND_PLAN_BY_EPSILON: False
 epsilon_schedule: linear(1, 0.4, 250000)
 PI_PARAMETERIZED: False
 PI_EACH_PARAMETERIZED: False
+REPRESENTATION_PARAMETERIZED: False
 
 # frequently change
 use_wandb: True

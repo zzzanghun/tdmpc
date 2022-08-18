@@ -51,7 +51,18 @@ class TOLD(nn.Module):
 
 	def h(self, obs):
 		"""Encodes an observation into its latent representation (h)."""
-		return self._encoder(obs)
+		if self.cfg.REPRESENTATION_PARAMETERIZED:
+			a = self._encoder[0](obs)
+			a = nn.ELU(a)
+			a = self._encoder[1](a)
+
+			k = self._encoder[2](a)
+			k = nn.Sigmoid(k)
+
+			a_zero = self._encoder[3](a)
+			return (k * a) - (k * a_zero)
+		else:
+			return self._encoder(obs)
 
 	def next(self, z, a):
 		"""Predicts next latent state (d) and single-step reward (R)."""
@@ -96,7 +107,20 @@ class TDMPC():
 		self.model = TOLD(cfg).cuda()
 		self.model_target = deepcopy(self.model)
 		self.optim = torch.optim.Adam(self.model.parameters(), lr=self.cfg.lr)
-		self.pi_optim = torch.optim.Adam(self.model._pi.parameters(), lr=self.cfg.lr)
+		if cfg.PI_PARAMETERIZED:
+			self.pi_optim = torch.optim.Adam([
+				{'params': self.model._pi.parameters()},
+				{'params': self.model._original_parameterized_net.parameters()},
+				{'params': self.model._scale_parameterized_net.parameters()},
+				{'params': self.model._bias_parameterized_net.parameters()}
+				], lr=self.cfg.lr)
+		elif cfg.PI_EACH_PARAMETERIZED:
+			self.pi_optim = torch.optim.Adam([
+				{'params': self.model._pi.parameters()},
+				{'params': self.model._pi_each_parameterized_net.parameters()}
+				], lr=self.cfg.lr)
+		else:
+			self.pi_optim = torch.optim.Adam(self.model._pi.parameters(), lr=self.cfg.lr)
 		self.aug = h.RandomShiftsAug(cfg)
 		self.action_type = deque(maxlen=cfg.episode_length)
 		self.model.eval()
