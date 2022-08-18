@@ -11,6 +11,8 @@ class TOLD(nn.Module):
 	def __init__(self, cfg):
 		super().__init__()
 		self.cfg = cfg
+		self.elu = nn.ELU()
+		self.sigmoid = nn.Sigmoid()
 		self._encoder = h.enc(cfg)
 		self._dynamics = h.mlp(cfg.latent_dim+cfg.action_dim, cfg.mlp_dim, cfg.latent_dim)
 		self._reward = h.mlp(cfg.latent_dim+cfg.action_dim, cfg.mlp_dim, 1)
@@ -53,11 +55,11 @@ class TOLD(nn.Module):
 		"""Encodes an observation into its latent representation (h)."""
 		if self.cfg.REPRESENTATION_PARAMETERIZED:
 			a = self._encoder[0](obs)
-			a = nn.ELU(a)
+			a = self.elu(a)
 			a = self._encoder[1](a)
 
 			k = self._encoder[2](a)
-			k = nn.Sigmoid(k)
+			k = self.sigmoid(k)
 
 			a_zero = self._encoder[3](a)
 			return (k * a) - (k * a_zero)
