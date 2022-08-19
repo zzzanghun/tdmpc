@@ -59,7 +59,7 @@ class TOLD(nn.Module):
 			a = self._encoder[1](a)
 
 			k = self._encoder[2](a)
-			k = self.sigmoid(k)
+			k = 5 * self.sigmoid(k)
 
 			a_zero = self._encoder[3](a)
 			return (k * a) - (k * a_zero)
