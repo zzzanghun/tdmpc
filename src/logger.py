@@ -80,7 +80,7 @@ class VideoRecorder:
 
 class Logger(object):
 	"""Primary logger object. Logs either locally or using wandb."""
-	def __init__(self, log_dir, cfg, name, name_wandb):
+	def __init__(self, log_dir, cfg, name, name_wandb, train_idx):
 		self._log_dir = make_dir(log_dir)
 		self._model_dir = make_dir(self._log_dir / 'models')
 		self._save_model = cfg.save_model
@@ -90,6 +90,7 @@ class Logger(object):
 		self._eval = []
 		self._name = name
 		self._name_wandb = name_wandb
+		self._train_idx = train_idx
 		print_run(cfg)
 		project, entity = cfg.get('wandb_project', 'none'), cfg.get('wandb_entity', 'none')
 		run_offline = not cfg.get('use_wandb', False) or project == 'none' or entity == 'none'
@@ -119,9 +120,15 @@ class Logger(object):
 		return self._video
 
 	def finish(self, agent):
+		now = datetime.datetime.now()
+		local_now = now.astimezone()
+		model_save_dir = os.path.join(PROJECT_HOME, self._cfg.task, self._cfg.name_for_result_save, "{}_{}_{}_{}".format(
+			local_now.month, local_now.day, local_now.hour, local_now.minute), 'model')
+		if not os.path.exists(model_save_dir):
+			os.makedirs(model_save_dir, exist_ok=True)
 		if self._save_model:
 			fp = self._model_dir / f'model.pt'
-			torch.save(agent.state_dict(), fp)
+			torch.save(agent.state_dict(), os.path.join(model_save_dir, 'model_{}.pth'.format(self._train_idx)))
 			if self._wandb:
 				artifact = self._wandb.Artifact(self._group+'-'+str(self._seed), type='model')
 				artifact.add_file(fp)
