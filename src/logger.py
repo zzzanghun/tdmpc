@@ -129,10 +129,10 @@ class Logger(object):
 		if self._save_model:
 			fp = self._model_dir / f'model.pt'
 			torch.save(agent.state_dict(), os.path.join(model_save_dir, 'model_{}.pth'.format(self._train_idx)))
-			if self._wandb:
-				artifact = self._wandb.Artifact(self._group+'-'+str(self._seed), type='model')
-				artifact.add_file(fp)
-				self._wandb.log_artifact(artifact)
+			# if self._wandb:
+			# 	artifact = self._wandb.Artifact(self._group+'-'+str(self._seed), type='model')
+			# 	artifact.add_file(fp)
+			# 	self._wandb.log_artifact(artifact)
 		if self._wandb:
 			self._wandb.finish()
 		print_run(self._cfg, self._eval[-1][-1])
