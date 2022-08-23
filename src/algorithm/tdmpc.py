@@ -128,6 +128,8 @@ class TDMPC():
 		self.model.eval()
 		self.model_target.eval()
 		self.prev_obs = None
+		self.mse_loss = nn.MSELoss()
+
 		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
 			self.choice_action_start_step = int(int(cfg.train_steps) / 5)
 		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_EPSILON:
@@ -353,8 +355,8 @@ class TDMPC():
 
 		real_current_inputs_feature = self.model.h(self.prev_obs)
 		pred_next_inputs_feature, _ = self.model.next(real_current_inputs_feature, action.unsqueeze(0))
-		
-		prediction_error = self.calc_mse_loss(real_next_inputs_feature, pred_next_inputs_feature)
-		int_rewards = self.cfg.BETA * prediction_error
+
+		prediction_error = self.mse_loss(real_next_inputs_feature, pred_next_inputs_feature)
+		int_rewards = self.cfg.BETA * 0.5 * prediction_error
 
 		return int_rewards.detach()
