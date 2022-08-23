@@ -348,9 +348,12 @@ class TDMPC():
 	def calc_int_reward(self, obs, action):
 		obs = torch.tensor(obs, dtype=torch.float32, device=self.device).unsqueeze(0)
 		self.prev_obs = torch.tensor(self.prev_obs, dtype=torch.float32, device=self.device).unsqueeze(0)
+
 		real_next_inputs_feature = self.model.h(obs)
+
 		real_current_inputs_feature = self.model.h(self.prev_obs)
-		pred_next_inputs_feature = self.model.next(real_current_inputs_feature, action)
+		pred_next_inputs_feature, _ = self.model.next(real_current_inputs_feature, action.unsqueeze(0))
+		
 		prediction_error = self.calc_mse_loss(real_next_inputs_feature, pred_next_inputs_feature)
 		int_rewards = self.cfg.BETA * prediction_error
 

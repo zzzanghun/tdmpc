@@ -66,7 +66,7 @@ def train(cfg):
 			while not episode.done:
 				action = agent.plan(obs, step=step, t0=episode.first)
 				obs, reward, done, _ = env.step(action.cpu().numpy())
-				if cfg.CURIOSITY_DRIVEN_EXPLORATION and not episode.first:
+				if cfg.CURIOSITY_DRIVEN_EXPLORATION:
 					int_reward = agent.calc_int_reward(obs, action)
 					reward = reward + int_reward
 				episode += (obs, action, reward, done)
