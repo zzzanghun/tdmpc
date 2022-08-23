@@ -73,7 +73,7 @@ def train(cfg):
 					int_reward_deque.append(int_reward)
 					reward = reward + int_reward
 				episode += (obs, action, reward, done)
-			assert len(episode) == cfg.episode_length
+			assert len(episode) == cfg.episode_length and len(int_reward_deque) == cfg.episode_length
 			buffer += episode
 
 			# Update model
@@ -86,13 +86,24 @@ def train(cfg):
 			# Log training episode
 			episode_idx += 1
 			env_step = int(step*cfg.action_repeat)
-			common_metrics = {
-				'episode': episode_idx,
-				'step': step,
-				'env_step': env_step,
-				'total_time': time.time() - start_time,
-				'episode_reward': episode.cumulative_reward,
-				'intrinsic_reward': sum(int_reward_deque)/len(int_reward_deque)}
+			if cfg.CURIOSITY_DRIVEN_EXPLORATION:
+				common_metrics = {
+					'episode': episode_idx,
+					'step': step,
+					'env_step': env_step,
+					'total_time': time.time() - start_time,
+					'episode_reward': episode.cumulative_reward - sum(int_reward_deque),
+					'intrinsic_reward': sum(int_reward_deque),
+					'episode_reward + intrinsic_reward': episode.cumulative_reward
+				}
+			else:
+				common_metrics = {
+					'episode': episode_idx,
+					'step': step,
+					'env_step': env_step,
+					'total_time': time.time() - start_time,
+					'episode_reward': episode.cumulative_reward
+				}
 			train_metrics.update(common_metrics)
 			L.log(train_metrics, category='train')
 
