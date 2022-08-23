@@ -15,6 +15,7 @@ from env import make_env
 from algorithm.tdmpc import TDMPC
 from algorithm.helper import Episode, ReplayBuffer
 import logger
+from collections import deque
 torch.backends.cudnn.benchmark = True
 __CONFIG__, __LOGS__ = 'cfgs', 'logs'
 
@@ -49,6 +50,7 @@ def train(cfg):
 	set_seed(cfg.seed)
 	total_train_episode_results = []
 	total_test_episode_results = []
+	int_reward_deque = deque(maxlen=cfg.episode_length)
 	work_dir = Path().cwd() / __LOGS__ / cfg.task / cfg.modality / cfg.exp_name / str(cfg.seed)
 	
 	# Run training
@@ -68,6 +70,7 @@ def train(cfg):
 				obs, reward, done, _ = env.step(action.cpu().numpy())
 				if cfg.CURIOSITY_DRIVEN_EXPLORATION:
 					int_reward = agent.calc_int_reward(obs, action)
+					int_reward_deque.append(int_reward)
 					reward = reward + int_reward
 				episode += (obs, action, reward, done)
 			assert len(episode) == cfg.episode_length
@@ -88,7 +91,8 @@ def train(cfg):
 				'step': step,
 				'env_step': env_step,
 				'total_time': time.time() - start_time,
-				'episode_reward': episode.cumulative_reward}
+				'episode_reward': episode.cumulative_reward,
+				'intrinsic_reward': sum(int_reward_deque)/len(int_reward_deque)}
 			train_metrics.update(common_metrics)
 			L.log(train_metrics, category='train')
 

@@ -341,12 +341,6 @@ class TDMPC():
 					'grad_norm': float(grad_norm),
 					'action_type': 0.0}
 
-	def calc_mse_loss(self, real_next_inputs_feature, pred_next_inputs_feature):
-		diff = real_next_inputs_feature - pred_next_inputs_feature
-		prediction_error = (diff ** 2).mean(2).mean(1)
-
-		return prediction_error
-
 	def calc_int_reward(self, obs, action):
 		obs = torch.tensor(obs, dtype=torch.float32, device=self.device).unsqueeze(0)
 		self.prev_obs = torch.tensor(self.prev_obs, dtype=torch.float32, device=self.device).unsqueeze(0)
