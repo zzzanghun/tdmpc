@@ -127,6 +127,7 @@ class TDMPC():
 		self.action_type = deque(maxlen=cfg.episode_length)
 		self.model.eval()
 		self.model_target.eval()
+		self.prev_representation = None
 		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
 			self.choice_action_start_step = int(int(cfg.train_steps) / 5)
 		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_EPSILON:
@@ -184,6 +185,7 @@ class TDMPC():
 
 		# Initialize state and parameters
 		z = self.model.h(obs).repeat(self.cfg.num_samples+num_pi_trajs, 1)
+		self.prev_representation = z[0]
 		mean = torch.zeros(horizon, self.cfg.action_dim, device=self.device)
 		std = 2*torch.ones(horizon, self.cfg.action_dim, device=self.device)
 		if not t0 and hasattr(self, '_prev_mean'):
@@ -336,3 +338,17 @@ class TDMPC():
 					'weighted_loss': float(weighted_loss.mean().item()),
 					'grad_norm': float(grad_norm),
 					'action_type': 0.0}
+
+	def calc_mse_loss(self, real_next_inputs_feature, pred_next_inputs_feature):
+		diff = real_next_inputs_feature - pred_next_inputs_feature
+		prediction_error = (diff ** 2).mean(2).mean(1)
+
+		return prediction_error
+
+	def calc_int_reward(self, obs, action):
+		real_next_inputs_feature = self.model.h(obs)
+		pred_next_inputs_feature = self.model.next(self.prev_representation.unsqueeze(0), action)
+		prediction_error = self.calc_mse_loss(real_next_inputs_feature, pred_next_inputs_feature)
+		int_rewards = self.cfg.BETA * prediction_error
+
+		return int_rewards.detach()

@@ -56,6 +56,8 @@ epsilon_schedule: linear(1, 0.4, 250000)
 PI_PARAMETERIZED: False
 PI_EACH_PARAMETERIZED: False
 REPRESENTATION_PARAMETERIZED: False
+CURIOSITY_DRIVEN_EXPLORATION: False
+BETA: 1
 
 # frequently change
 use_wandb: True
