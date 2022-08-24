@@ -122,8 +122,8 @@ class Logger(object):
 	def finish(self, agent):
 		now = datetime.datetime.now()
 		local_now = now.astimezone()
-		model_save_dir = os.path.join(PROJECT_HOME, self._cfg.task, self._cfg.name_for_result_save, "{}_{}_{}_{}".format(
-			local_now.month, local_now.day, local_now.hour, local_now.minute), 'model')
+		model_save_dir = os.path.join(PROJECT_HOME, self._cfg.task, self._cfg.name_for_result_save, "{}_{}".format(
+			local_now.month, local_now.day), 'model')
 		if not os.path.exists(model_save_dir):
 			os.makedirs(model_save_dir, exist_ok=True)
 		if self._save_model:
@@ -166,9 +166,10 @@ class Logger(object):
 			pd.DataFrame(np.array(self._eval)).to_csv(self._log_dir / 'eval.log', header=keys, index=None)
 		self._print(d, category)
 
+
 def extract_results(episode_results):
 	if not type(episode_results) == np.ndarray:
-		episode_results = np.asarray(episode_results)
+		episode_results = np.asarray(episode_results.detach().cpu())
 
 	mean_results = episode_results.mean(axis=0)
 	assert len(mean_results) == len(episode_results[0])
@@ -178,6 +179,7 @@ def extract_results(episode_results):
 	assert len(min_results) == len(episode_results[0])
 
 	return mean_results, max_results, min_results
+
 
 def graph_results(mean_results, max_results, min_results, cfg, mode):
 	now = datetime.datetime.now()
