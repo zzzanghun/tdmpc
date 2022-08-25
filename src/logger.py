@@ -169,7 +169,7 @@ class Logger(object):
 
 def extract_results(episode_results):
 	if not type(episode_results) == np.ndarray:
-		episode_results = np.asarray(episode_results.detach().cpu())
+		episode_results = np.asarray(episode_results)
 
 	mean_results = episode_results.mean(axis=0)
 	assert len(mean_results) == len(episode_results[0])

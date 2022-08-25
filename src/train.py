@@ -107,7 +107,7 @@ def train(cfg):
 			train_metrics.update(common_metrics)
 			L.log(train_metrics, category='train')
 
-			train_episode_results.append(episode.cumulative_reward)
+			train_episode_results.append(float(episode.cumulative_reward))
 
 			# Evaluate agent periodically
 			if env_step % cfg.eval_freq == 0:
