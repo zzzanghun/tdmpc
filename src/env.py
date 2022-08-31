@@ -243,7 +243,7 @@ class DefaultDictWrapper(gym.Wrapper):
 		return obs, reward, done, defaultdict(float, info)
 
 
-def make_env(cfg):
+def make_env(cfg, train_idx):
 	"""
 	Make DMControl environment for TD-MPC experiments.
 	Adapted from https://github.com/facebookresearch/drqv2
@@ -253,7 +253,7 @@ def make_env(cfg):
 	assert (domain, task) in suite.ALL_TASKS
 	env = suite.load(domain,
 					 task,
-					 task_kwargs={'random': cfg.seed},
+					 task_kwargs={'random': train_idx+1},
 					 visualize_reward=False)
 	env = ActionDTypeWrapper(env, np.float32)
 	env = ActionRepeatWrapper(env, cfg.action_repeat)

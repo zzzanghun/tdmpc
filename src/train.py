@@ -57,7 +57,7 @@ def train(cfg):
 	for train_idx in range(cfg.num_train):
 		train_episode_results = []
 		test_episode_results = []
-		env, agent, buffer = make_env(cfg), TDMPC(cfg), ReplayBuffer(cfg)
+		env, agent, buffer = make_env(cfg, train_idx), TDMPC(cfg), ReplayBuffer(cfg)
 		L = logger.Logger(work_dir, cfg, str(cfg.server)+"_"+cfg.name_for_result_save+"_{}".format(train_idx), str(cfg.server)+"_"+cfg.name_for_result_save, train_idx)
 		episode_idx, start_time = 0, time.time()
 		for step in range(0, cfg.train_steps+cfg.episode_length, cfg.episode_length):
