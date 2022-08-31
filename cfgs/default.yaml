@@ -43,6 +43,7 @@ wandb_entity: zzzanghun
 
 # misc
 seed: 1
+seed_change: False
 exp_name: default
 eval_freq: 20000
 eval_episodes: 10

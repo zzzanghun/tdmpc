@@ -251,10 +251,16 @@ def make_env(cfg, train_idx):
 	domain, task = cfg.task.replace('-', '_').split('_', 1)
 	domain = dict(cup='ball_in_cup').get(domain, domain)
 	assert (domain, task) in suite.ALL_TASKS
-	env = suite.load(domain,
-					 task,
-					 task_kwargs={'random': train_idx+1},
-					 visualize_reward=False)
+	if cfg.seed_change:
+		env = suite.load(domain,
+						 task,
+						 task_kwargs={'random': train_idx+1},
+						 visualize_reward=False)
+	else:
+		env = suite.load(domain,
+						 task,
+						 task_kwargs={'random': cfg.seed},
+						 visualize_reward=False)
 	env = ActionDTypeWrapper(env, np.float32)
 	env = ActionRepeatWrapper(env, cfg.action_repeat)
 	env = action_scale.Wrapper(env, minimum=-1.0, maximum=+1.0)
