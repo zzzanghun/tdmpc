@@ -73,7 +73,10 @@ def train(cfg):
 					int_reward_deque.append(int_reward)
 					reward = reward + int_reward
 				episode += (obs, action, reward, done)
-			assert len(episode) == cfg.episode_length and len(int_reward_deque) == cfg.episode_length
+			if cfg.CURIOSITY_DRIVEN_EXPLORATION:
+				assert len(episode) == cfg.episode_length and len(int_reward_deque) == cfg.episode_length
+			else:
+				assert len(episode) == cfg.episode_length
 			buffer += episode
 
 			# Update model
