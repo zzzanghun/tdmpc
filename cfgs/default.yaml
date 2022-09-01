@@ -1,5 +1,4 @@
 # environment
-task_for_obs_shape: manipulator
 domain: quadruped
 task: run
 modality: 'state'

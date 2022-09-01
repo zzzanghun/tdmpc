@@ -273,7 +273,7 @@ def make_env(cfg):
 	env = DefaultDictWrapper(env)
 
 	# Convenience
-	if cfg.task_for_obs_shape == 'manipulator':
+	if cfg.domain == 'manipulator':
 		cfg.obs_shape = (44,)
 	else:
 		cfg.obs_shape = tuple(int(x) for x in env.observation_space.shape)
