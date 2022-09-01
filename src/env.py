@@ -248,7 +248,8 @@ def make_env(cfg):
 	Make DMControl environment for TD-MPC experiments.
 	Adapted from https://github.com/facebookresearch/drqv2
 	"""
-	domain, task = cfg.task.replace('-', '_').split('_', 1)
+	domain = cfg.domain
+	task = cfg.task
 	domain = dict(cup='ball_in_cup').get(domain, domain)
 	assert (domain, task) in suite.ALL_TASKS
 	env = suite.load(domain,
