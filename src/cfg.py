@@ -22,7 +22,8 @@ def parse_cfg(cfg_path: str) -> OmegaConf:
 
 	# Task config
 	try:
-		domain, task = base.task.split('-', 1)
+		domain = base.domain
+		task = base.task
 	except:
 		raise ValueError(f'Invalid task name: {base.task}')
 	domain_path = cfg_path / 'tasks' / f'{domain}.yaml'
