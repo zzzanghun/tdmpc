@@ -31,7 +31,7 @@ def print_run(cfg, reward=None):
 		return str(s[:maxlen]) + '...' if len(str(s)) > maxlen else s
 	def pprint(k, v):
 		print(prefix + colored(f'{k.capitalize()+":":<16}', color, attrs=attrs), limstr(v))
-	kvs = [('task', cfg.task_title),
+	kvs = [('task', cfg.domain + "-" + cfg.task),
 		   ('train steps', f'{int(cfg.train_steps*cfg.action_repeat):,}'),
 		   ('observations', 'x'.join([str(s) for s in cfg.obs_shape])),
 		   ('actions', cfg.action_dim),
@@ -122,7 +122,7 @@ class Logger(object):
 	def finish(self, agent):
 		now = datetime.datetime.now()
 		local_now = now.astimezone()
-		model_save_dir = os.path.join(PROJECT_HOME, self._cfg.task, self._cfg.name_for_result_save, "{}_{}".format(
+		model_save_dir = os.path.join(PROJECT_HOME, self._cfg.domain + "-" + self._cfg.task, self._cfg.name_for_result_save, "{}_{}".format(
 			local_now.month, local_now.day), 'model')
 		if not os.path.exists(model_save_dir):
 			os.makedirs(model_save_dir, exist_ok=True)
@@ -185,7 +185,7 @@ def graph_results(mean_results, max_results, min_results, cfg, mode):
 	now = datetime.datetime.now()
 	local_now = now.astimezone()
 
-	graph_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, "{}_{}_{}_{}".format(
+	graph_save_dir = os.path.join(PROJECT_HOME, cfg.domain + "-" + cfg.task, cfg.name_for_result_save, "{}_{}_{}_{}".format(
 			local_now.month, local_now.day, local_now.hour, local_now.minute), 'graph')
 	if not os.path.exists(graph_save_dir):
 		os.makedirs(graph_save_dir, exist_ok=True)
@@ -217,7 +217,7 @@ def save_csv(mean_results, max_results, min_results, cfg, mode):
 	now = datetime.datetime.now()
 	local_now = now.astimezone()
 
-	csv_save_dir = os.path.join(PROJECT_HOME, cfg.task, cfg.name_for_result_save, "{}_{}_{}_{}".format(
+	csv_save_dir = os.path.join(PROJECT_HOME, cfg.domain + "-" + cfg.task, cfg.name_for_result_save, "{}_{}_{}_{}".format(
 			local_now.month, local_now.day, local_now.hour, local_now.minute), 'csv')
 	if not os.path.exists(csv_save_dir):
 		os.makedirs(csv_save_dir, exist_ok=True)
