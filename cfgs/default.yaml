@@ -1,6 +1,4 @@
 # environment
-domain: quadruped
-task: run
 modality: 'state'
 action_repeat: ???
 discount: 0.99
@@ -69,3 +67,6 @@ mixture_coef: 0.05
 name_for_result_save: None
 num_train: 5
 server: mac
+
+domain: quadruped
+task: run
