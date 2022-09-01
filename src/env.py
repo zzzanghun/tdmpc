@@ -272,7 +272,10 @@ def make_env(cfg):
 	env = DefaultDictWrapper(env)
 
 	# Convenience
-	cfg.obs_shape = tuple(int(x) for x in env.observation_space.shape)
+	if cfg.task_for_obs_shape == 'manipulator':
+		cfg.obs_shape = (44,)
+	else:
+		cfg.obs_shape = tuple(int(x) for x in env.observation_space.shape)
 	cfg.action_shape = tuple(int(x) for x in env.action_space.shape)
 	cfg.action_dim = env.action_space.shape[0]
 

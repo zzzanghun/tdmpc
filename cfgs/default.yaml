@@ -1,5 +1,6 @@
 # environment
 task: quadruped-run
+task_for_obs_shape: manipulator
 modality: 'state'
 action_repeat: ???
 discount: 0.99
