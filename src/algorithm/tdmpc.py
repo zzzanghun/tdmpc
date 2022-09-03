@@ -103,7 +103,7 @@ class TDMPC():
 	"""Implementation of TD-MPC learning + inference."""
 	def __init__(self, cfg):
 		self.cfg = cfg
-		self.device = torch.device('cuda')
+		self.device = torch.device(cfg.device)
 		self.std = h.linear_schedule(cfg.std_schedule, 0)
 		self.epsilon = h.linear_schedule(cfg.std_schedule, 0)
 		self.model = TOLD(cfg).cuda()
