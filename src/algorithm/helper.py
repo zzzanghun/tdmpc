@@ -242,13 +242,13 @@ class ReplayBuffer():
 		if self.cfg.modality == 'state':
 			return arr[idxs]
 		obs = torch.empty((self.cfg.batch_size, 3*self.cfg.frame_stack, *arr.shape[-2:]), dtype=arr.dtype, device=torch.device('cuda'))
-		obs[:, -3:] = arr[idxs].cuda()
+		obs[:, -3:] = arr[idxs].to(self.cfg.device)
 		_idxs = idxs.clone()
 		mask = torch.ones_like(_idxs, dtype=torch.bool)
 		for i in range(1, self.cfg.frame_stack):
 			mask[_idxs % self.cfg.episode_length == 0] = False
 			_idxs[mask] -= 1
-			obs[:, -(i+1)*3:-i*3] = arr[_idxs].cuda()
+			obs[:, -(i+1)*3:-i*3] = arr[_idxs].to(self.cfg.device)
 		return obs.float()
 
 	def sample(self):
@@ -271,10 +271,10 @@ class ReplayBuffer():
 			reward[t] = self._reward[_idxs]
 
 		mask = (_idxs+1) % self.cfg.episode_length == 0
-		next_obs[-1, mask] = self._last_obs[_idxs[mask]//self.cfg.episode_length].cuda().float()
+		next_obs[-1, mask] = self._last_obs[_idxs[mask]//self.cfg.episode_length].to(self.device).float()
 		if not action.is_cuda:
 			action, reward, idxs, weights = \
-				action.cuda(), reward.cuda(), idxs.cuda(), weights.cuda()
+				action.to(self.device), reward.to(self.device), idxs.to(self.device), weights.to(self.device)
 
 		return obs, next_obs, action, reward.unsqueeze(2), idxs, weights
 

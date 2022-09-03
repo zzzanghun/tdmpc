@@ -46,7 +46,7 @@ def evaluate(env, agent, num_episodes, step, env_step, video):
 
 def train(cfg):
 	"""Training script for TD-MPC. Requires a CUDA-enabled device."""
-	assert torch.cuda.is_available()
+	# assert torch.cuda.is_available()
 	set_seed(cfg.seed)
 	total_train_episode_results = []
 	total_test_episode_results = []

@@ -106,7 +106,7 @@ class TDMPC():
 		self.device = torch.device(cfg.device)
 		self.std = h.linear_schedule(cfg.std_schedule, 0)
 		self.epsilon = h.linear_schedule(cfg.std_schedule, 0)
-		self.model = TOLD(cfg).cuda()
+		self.model = TOLD(cfg).to(self.device)
 		self.model_target = deepcopy(self.model)
 		self.optim = torch.optim.Adam(self.model.parameters(), lr=self.cfg.lr)
 		if cfg.PI_PARAMETERIZED:
