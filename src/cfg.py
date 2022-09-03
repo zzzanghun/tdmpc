@@ -43,7 +43,10 @@ def parse_cfg(cfg_path: str) -> OmegaConf:
 
 	# Convenience
 	base.task_title = base.task.replace('-', ' ').title()
-	base.device = 'cuda' if base.modality == 'state' else 'cpu'
+	if base.server == 'macstudio01' or base.server == 'macstudio02':
+		base.device = 'cpu'
+	else:
+		base.device = 'cuda'
 	base.exp_name = str(base.get('exp_name', 'default'))
 
 	return base
