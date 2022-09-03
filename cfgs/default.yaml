@@ -67,6 +67,7 @@ mixture_coef: 0.05
 name_for_result_save: None
 num_train: 5
 server: mac
+device: 'cuda'
 
 domain: quadruped
 task: run
