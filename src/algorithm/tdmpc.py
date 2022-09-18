@@ -245,6 +245,43 @@ class TDMPC():
 						self.action_type.append(1)
 						return pi_action[0]
 
+		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_REVERSE:
+			if t0:
+				self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
+			if step < self.choice_action_start_step:
+				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
+				return pi_action[0]
+			coin = np.random.random()  # 0 ~ 1
+			if coin <= self.epsilon:
+				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
+				self.action_type.append(1)
+				return pi_action[0]
+
+		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_REVERSE:
+			if t0:
+				self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
+			if step < self.choice_action_start_step:
+				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
+				self.action_type.append(1)
+				return pi_action[0]
+			coin = np.random.random()  # 0 ~ 1
+			if coin <= self.epsilon:
+				self.action_type.append(0)
+				return a
+
+		elif self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_FRONT:
+			if t0:
+				self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
+			if step < self.choice_action_start_step:
+				self.action_type.append(0)
+				return a
+			coin = np.random.random()  # 0 ~ 1
+			if coin <= self.epsilon:
+				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
+				self.action_type.append(1)
+				return pi_action[0]
+
+
 		self.action_type.append(0)
 		return a
 
