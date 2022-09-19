@@ -213,7 +213,7 @@ def graph_results(mean_results, max_results, min_results, cfg, mode):
 		os.path.join(graph_save_dir, mode)), bbox_inches='tight')
 
 
-def save_csv(mean_results, max_results, min_results, cfg, mode):
+def save_csv(results, cfg, mode):
 	now = datetime.datetime.now()
 	local_now = now.astimezone()
 
@@ -221,7 +221,7 @@ def save_csv(mean_results, max_results, min_results, cfg, mode):
 			local_now.month, local_now.day, local_now.hour, local_now.minute), 'csv')
 	if not os.path.exists(csv_save_dir):
 		os.makedirs(csv_save_dir, exist_ok=True)
-
-	dict_for_save_csv = {'MEAN': mean_results, 'MAX': max_results, 'MIN': min_results}
+	results = np.asarray(results)
+	dict_for_save_csv = {'run 1': results[0], 'run 2': results[1], 'run 3': results[2], 'run 4': results[3], 'run 5': results[5], 'std': np.std(results, axis=0)}
 	pd_data_frame = pd.DataFrame(dict_for_save_csv)
 	pd_data_frame.to_csv("{0}.csv".format(os.path.join(csv_save_dir, mode)))

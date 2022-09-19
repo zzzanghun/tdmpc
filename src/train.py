@@ -130,7 +130,7 @@ def train(cfg):
 		mean_results=train_mean_results, max_results=train_max_results, min_results=train_min_results, cfg=cfg, mode="Train"
 	)
 	logger.save_csv(
-		mean_results=train_mean_results, max_results=train_max_results, min_results=train_min_results, cfg=cfg, mode="Train"
+		results=total_train_episode_results, cfg=cfg, mode="Train"
 	)
 
 	test_mean_results, test_max_results, test_min_results = logger.extract_results(total_test_episode_results)
