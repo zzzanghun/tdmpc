@@ -186,6 +186,14 @@ class TDMPC():
 				pi_actions[t] = self.model.pi(z, self.cfg.min_std)
 				z, _ = self.model.next(z, pi_actions[t])
 
+		#################### COMPARISON TEST #######################
+		if self.cfg.COMPARISON_TEST:
+			if eval_mode:
+				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
+				self.action_type.append(1)
+				return pi_action[0]
+		############################################################
+
 		# Initialize state and parameters
 		z = self.model.h(obs).repeat(self.cfg.num_samples+num_pi_trajs, 1)
 		mean = torch.zeros(horizon, self.cfg.action_dim, device=self.device)
