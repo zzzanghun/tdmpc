@@ -139,8 +139,7 @@ def train(cfg):
 		mode="Test"
 	)
 	logger.save_csv(
-		mean_results=test_mean_results, max_results=test_max_results, min_results=test_min_results, cfg=cfg,
-		mode="Test"
+		results=total_test_episode_results, cfg=cfg, mode="Test"
 	)
 	print("ALL TRAINING COMPLETED, SAVE GRAPH AND CSV")
 
