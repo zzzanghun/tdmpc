@@ -222,6 +222,6 @@ def save_csv(results, cfg, mode):
 	if not os.path.exists(csv_save_dir):
 		os.makedirs(csv_save_dir, exist_ok=True)
 	results = np.asarray(results)
-	dict_for_save_csv = {'run 1': results[0], 'run 2': results[1], 'run 3': results[2], 'run 4': results[3], 'run 5': results[5], 'std': np.std(results, axis=0)}
+	dict_for_save_csv = {'run 1': results[0], 'run 2': results[1], 'run 3': results[2], 'run 4': results[3], 'run 5': results[4], 'std': np.std(results, axis=0)}
 	pd_data_frame = pd.DataFrame(dict_for_save_csv)
 	pd_data_frame.to_csv("{0}.csv".format(os.path.join(csv_save_dir, mode)))

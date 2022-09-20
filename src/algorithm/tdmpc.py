@@ -228,7 +228,7 @@ class TDMPC():
 				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 				self.action_type.append(1)
 				return pi_action[0]
-		
+
 		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
 			if step >= self.choice_action_start_step:
 				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
