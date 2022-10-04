@@ -128,15 +128,16 @@ class TDMPC():
 			self.pi_optim = torch.optim.Adam(self.model._pi.parameters(), lr=self.cfg.lr)
 		self.aug = h.RandomShiftsAug(cfg)
 		self.action_type = deque(maxlen=cfg.episode_length)
+		self.valuable_action = deque(maxlen=cfg.episode_length)
 		self.model.eval()
 		self.model_target.eval()
 		self.prev_obs = None
 		self.mse_loss = nn.MSELoss()
 
 		if cfg.JUDGE_Q:
+			self.model_for_judge_q = deepcopy(self.model)
 			self.model_save_dir = os.path.join(PROJECT_HOME, "models", self.cfg.domain + "-" + self.cfg.task)
 			self.load_judge_q()
-			print("finish!!!!!!!!!!!!!!!!!!!")
 		else:
 			self.judge_q = None
 
@@ -229,19 +230,29 @@ class TDMPC():
 		actions = elite_actions[:, np.random.choice(np.arange(score.shape[0]), p=score)]
 		self._prev_mean = mean
 		mean, std = actions[0], _std[0]
+
 		a = mean
 		if not eval_mode:
 			a += std * torch.randn(self.cfg.action_dim, device=std.device)
+			pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
+		else:
+			pi_action = self.model.pi(torch.unsqueeze(z[0], 0))
+
+		if self.cfg.JUDGE_Q:
+			pi_action_judge_q = torch.min(*self.model_for_judge_q.Q(torch.unsqueeze(z[0], 0), pi_action))
+			plan_action_judge_q = torch.min(*self.model_for_judge_q.Q(torch.unsqueeze(z[0], 0), torch.unsqueeze(a, 0)))
+			if pi_action_judge_q > plan_action_judge_q:
+				self.valuable_action.append(1)
+			else:
+				self.valuable_action.append(0)
 
 		if self.cfg.COMPARISON_TEST:
 			if eval_mode:
-				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 				self.action_type.append(1)
 				return pi_action[0]
 
 		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
 			if step >= self.choice_action_start_step:
-				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 				pi_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), pi_action))
 				plan_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), torch.unsqueeze(a, 0)))
 				if pi_action_q > plan_action_q:
@@ -254,7 +265,6 @@ class TDMPC():
 			coin = np.random.random()  # 0 ~ 1
 			if coin > self.epsilon:
 				if step >= self.choice_action_start_step:
-					pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 					pi_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), pi_action))
 					plan_action_q = torch.min(*self.model.Q(torch.unsqueeze(z[0], 0), torch.unsqueeze(a, 0)))
 					if pi_action_q > plan_action_q:
@@ -269,7 +279,6 @@ class TDMPC():
 				self.action_type.append(0)
 				return a
 			else:
-				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 				self.action_type.append(1)
 				return pi_action[0]
 
@@ -278,7 +287,6 @@ class TDMPC():
 				self.epsilon = h.linear_schedule(self.cfg.epsilon_schedule, step*self.cfg.action_repeat)
 			coin = np.random.random()  # 0 ~ 1
 			if coin <= self.epsilon:
-				pi_action = self.model.pi(torch.unsqueeze(z[0], 0), self.std)
 				self.action_type.append(1)
 				return pi_action[0]
 
@@ -360,23 +368,25 @@ class TDMPC():
 		self.model.eval()
 
 		if len(self.action_type) > 0:
-			return {'consistency_loss': float(consistency_loss.mean().item()),
-					'reward_loss': float(reward_loss.mean().item()),
-					'value_loss': float(value_loss.mean().item()),
-					'pi_loss': pi_loss,
-					'total_loss': float(total_loss.mean().item()),
-					'weighted_loss': float(weighted_loss.mean().item()),
-					'grad_norm': float(grad_norm),
-					'action_type': float(sum(self.action_type)/len(self.action_type))}
+			mean_action_type = float(sum(self.action_type)/len(self.action_type))
 		else:
-			return {'consistency_loss': float(consistency_loss.mean().item()),
-					'reward_loss': float(reward_loss.mean().item()),
-					'value_loss': float(value_loss.mean().item()),
-					'pi_loss': pi_loss,
-					'total_loss': float(total_loss.mean().item()),
-					'weighted_loss': float(weighted_loss.mean().item()),
-					'grad_norm': float(grad_norm),
-					'action_type': 0.0}
+			mean_action_type = 0.0
+
+		if len(self.valuable_action) > 0:
+			mean_valuable_action = float(sum(self.valuable_action) / len(self.valuable_action))
+		else:
+			mean_valuable_action = 0.0
+
+		return {'consistency_loss': float(consistency_loss.mean().item()),
+				'reward_loss': float(reward_loss.mean().item()),
+				'value_loss': float(value_loss.mean().item()),
+				'pi_loss': pi_loss,
+				'total_loss': float(total_loss.mean().item()),
+				'weighted_loss': float(weighted_loss.mean().item()),
+				'grad_norm': float(grad_norm),
+				'action_type': mean_action_type,
+				'valuable_action': mean_valuable_action}
+
 
 	def calc_int_reward(self, obs, action):
 		obs = torch.tensor(obs, dtype=torch.float32, device=self.device).unsqueeze(0)
@@ -412,6 +422,4 @@ class TDMPC():
 		elif chosen_number > 0:
 			print("### START WITH THE SELECTED MODEL: ", end="")
 			d = torch.load(model_file_dict[chosen_number])
-			print(d['model']['_Q1'], d['model']['_Q2'])
-			self.model.load_state_dict(d['model'])
-			self.model_target.load_state_dict(d['model_target'])
+			self.model_for_judge_q.load_state_dict(d['model'])
