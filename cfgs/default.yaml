@@ -48,6 +48,7 @@ eval_freq: 20000
 eval_episodes: 10
 save_video: False
 save_model: True
+load_model: False
 
 # custom idea
 CHOICE_ACTION_POLICY_AND_PLAN_BY_Q: False
@@ -61,6 +62,7 @@ REPRESENTATION_PARAMETERIZED: False
 CURIOSITY_DRIVEN_EXPLORATION: False
 COMPARISON_TEST: False
 BETA: 0.01
+JUDGE_Q: True
 
 # frequently change
 use_wandb: True
@@ -72,5 +74,5 @@ num_train: 5
 server: mac
 device: 'cuda'
 
-domain: quadruped
-task: run
+domain: reacher
+task: hard

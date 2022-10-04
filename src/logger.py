@@ -14,7 +14,6 @@ CONSOLE_FORMAT = [('episode', 'E', 'int'), ('env_step', 'S', 'int'), ('episode_r
 AGENT_METRICS = ['consistency_loss', 'reward_loss', 'value_loss', 'total_loss', 'weighted_loss', 'pi_loss', 'grad_norm']
 PROJECT_HOME = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, 'results')
 
-
 def make_dir(dir_path):
 	"""Create directory if it does not already exist."""
 	try:
@@ -122,13 +121,12 @@ class Logger(object):
 	def finish(self, agent):
 		now = datetime.datetime.now()
 		local_now = now.astimezone()
-		model_save_dir = os.path.join(PROJECT_HOME, self._cfg.domain + "-" + self._cfg.task, self._cfg.name_for_result_save, "{}_{}".format(
-			local_now.month, local_now.day), 'model')
+		model_save_dir = os.path.join(PROJECT_HOME, "models", self._cfg.domain + "-" + self._cfg.task)
 		if not os.path.exists(model_save_dir):
 			os.makedirs(model_save_dir, exist_ok=True)
 		if self._save_model:
 			fp = self._model_dir / f'model.pt'
-			torch.save(agent.state_dict(), os.path.join(model_save_dir, 'model_{}.pth'.format(self._train_idx)))
+			torch.save(agent.state_dict(), os.path.join(model_save_dir, self._cfg.name_for_result_save + '_{}.pth'.format(self._train_idx)))
 			# if self._wandb:
 			# 	artifact = self._wandb.Artifact(self._group+'-'+str(self._seed), type='model')
 			# 	artifact.add_file(fp)

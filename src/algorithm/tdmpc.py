@@ -1,3 +1,5 @@
+import os
+import glob
 import numpy as np
 import torch
 import torch.nn as nn
@@ -5,6 +7,7 @@ from copy import deepcopy
 import algorithm.helper as h
 from collections import deque, OrderedDict
 
+PROJECT_HOME = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, 'results')
 
 class TOLD(nn.Module):
 	"""Task-Oriented Latent Dynamics (TOLD) model used in TD-MPC."""
@@ -129,6 +132,12 @@ class TDMPC():
 		self.model_target.eval()
 		self.prev_obs = None
 		self.mse_loss = nn.MSELoss()
+
+		if cfg.JUDGE_Q:
+			self.load_judge_q()
+			print("!!!")
+		else:
+			self.judge_q = None
 
 		if self.cfg.CHOICE_ACTION_POLICY_AND_PLAN_BY_Q:
 			self.choice_action_start_step = int(int(cfg.train_steps) / 5)
@@ -381,3 +390,27 @@ class TDMPC():
 		int_rewards = self.cfg.BETA * 0.5 * prediction_error
 
 		return int_rewards.detach()
+
+	def load_judge_q(self):
+		model_file_dict = {}
+		model_file_list = glob.glob(os.path.join(self.model_save_dir, "*.pth"))
+		idx = 1
+		for model_file_name in model_file_list:
+			print("{0}.".format(idx))
+			print("{0}".format(model_file_name))
+			model_file_dict[idx] = model_file_name
+			idx += 1
+		try:
+			chosen_number = int(
+				input("Choose ONE NUMBER from the above options and press enter (two or more times) to continue..."))
+		except ValueError as e:
+			chosen_number = 0
+
+		if chosen_number == 0:
+			print("### START WITH *RANDOM* DEEP LEARNING MODEL")
+		elif chosen_number > 0:
+			print("### START WITH THE SELECTED MODEL: ", end="")
+			d = model_file_dict[chosen_number]
+			print(d)
+			self.model.load_state_dict(d['model'])
+			self.model_target.load_state_dict(d['model_target'])
