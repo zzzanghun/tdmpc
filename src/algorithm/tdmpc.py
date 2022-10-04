@@ -134,8 +134,9 @@ class TDMPC():
 		self.mse_loss = nn.MSELoss()
 
 		if cfg.JUDGE_Q:
+			self.model_save_dir = os.path.join(PROJECT_HOME, "models", self.cfg.domain + "-" + self.cfg.task)
 			self.load_judge_q()
-			print("!!!")
+			print("finish!!!!!!!!!!!!!!!!!!!")
 		else:
 			self.judge_q = None
 
