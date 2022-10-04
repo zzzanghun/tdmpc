@@ -7,7 +7,7 @@ from copy import deepcopy
 import algorithm.helper as h
 from collections import deque, OrderedDict
 
-PROJECT_HOME = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, 'results')
+PROJECT_HOME = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, os.pardir, 'results')
 
 class TOLD(nn.Module):
 	"""Task-Oriented Latent Dynamics (TOLD) model used in TD-MPC."""
@@ -411,7 +411,7 @@ class TDMPC():
 			print("### START WITH *RANDOM* DEEP LEARNING MODEL")
 		elif chosen_number > 0:
 			print("### START WITH THE SELECTED MODEL: ", end="")
-			d = model_file_dict[chosen_number]
-			print(d)
+			d = torch.load(model_file_dict[chosen_number])
+			print(d['model']['_Q1'], d['model']['_Q2'])
 			self.model.load_state_dict(d['model'])
 			self.model_target.load_state_dict(d['model_target'])
