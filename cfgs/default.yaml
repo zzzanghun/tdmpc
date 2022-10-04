@@ -62,7 +62,7 @@ REPRESENTATION_PARAMETERIZED: False
 CURIOSITY_DRIVEN_EXPLORATION: False
 COMPARISON_TEST: False
 BETA: 0.01
-JUDGE_Q: True
+JUDGE_Q: False
 
 # frequently change
 use_wandb: True
