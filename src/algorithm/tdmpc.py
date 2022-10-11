@@ -400,7 +400,7 @@ class TDMPC():
 		else:
 			mean_valuable_action = 0.0
 
-		if self.cfg.CURIOSITY_ENCODER:
+		if self.cfg.CURIOSITY_ENCODER and step % self.cfg.episode_length:
 			return {'consistency_loss': float(consistency_loss.mean().item()),
 					'reward_loss': float(reward_loss.mean().item()),
 					'value_loss': float(value_loss.mean().item()),
