@@ -17,6 +17,8 @@ class TOLD(nn.Module):
 		self.elu = nn.ELU()
 		self.sigmoid = nn.Sigmoid()
 		self._encoder = h.enc(cfg)
+		if cfg.CURIOSITY_ENCODER:
+			self._curiosity_encoder = h.enc(cfg)
 		self._dynamics = h.mlp(cfg.latent_dim+cfg.action_dim, cfg.mlp_dim, cfg.latent_dim)
 		self._reward = h.mlp(cfg.latent_dim+cfg.action_dim, cfg.mlp_dim, 1)
 		if cfg.PI_PARAMETERIZED:
@@ -54,18 +56,10 @@ class TOLD(nn.Module):
 		for m in [self._Q1, self._Q2]:
 			h.set_requires_grad(m, enable)
 
-	def h(self, obs):
+	def h(self, obs, int_reward=False):
 		"""Encodes an observation into its latent representation (h)."""
-		if self.cfg.REPRESENTATION_PARAMETERIZED:
-			a = self._encoder[0](obs)
-			a = self.elu(a)
-			a = self._encoder[1](a)
-
-			k = self._encoder[2](a)
-			k = 5 * self.sigmoid(k)
-
-			a_zero = self._encoder[3](a)
-			return (k * a) - (k * a_zero)
+		if self.cfg.CURIOSITY_ENCODER and int_reward:
+			return self._curiosity_encoder(obs)
 		else:
 			return self._encoder(obs)
 
@@ -126,6 +120,8 @@ class TDMPC():
 				], lr=self.cfg.lr)
 		else:
 			self.pi_optim = torch.optim.Adam(self.model._pi.parameters(), lr=self.cfg.lr)
+		if cfg.CURIOSITY_ENCODER:
+			self.curiosity_encoder_optim = torch.optim.Adam(self.model._curiosity_encoder.parameters(), lr=self.cfg.lr)
 		self.aug = h.RandomShiftsAug(cfg)
 		self.action_type = deque(maxlen=cfg.episode_length)
 		self.valuable_action = deque(maxlen=cfg.episode_length)
@@ -311,6 +307,28 @@ class TDMPC():
 		self.model.track_q_grad(True)
 		return pi_loss.item()
 
+	def update_curiosity_encoder(self, obs, next_obses, action):
+		z = self.model.h(self.aug(obs), int_reward=True)
+
+		consistency_loss = 0
+
+		for t in range(self.cfg.horizon):
+			# Predictions
+			with torch.no_grad():
+				z, reward_pred = self.model.next(z, action[t])
+				next_obs = self.aug(next_obses[t])
+				next_z = self.model_target.h(next_obs, int_reward=True)
+
+			# Losses
+			rho = (self.cfg.rho ** t)
+			consistency_loss += rho * torch.mean(h.mse(z, next_z), dim=1, keepdim=True)
+
+		consistency_loss.backward()
+		torch.nn.utils.clip_grad_norm_(self.model._curiosity_encoder.parameters(), self.cfg.grad_clip_norm,
+												   error_if_nonfinite=False)
+		self.curiosity_encoder_optim.step()
+		return consistency_loss.item()
+
 	@torch.no_grad()
 	def _td_target(self, next_obs, reward):
 		"""Compute the TD-target from a reward and the observation at the following time step."""
@@ -364,6 +382,8 @@ class TDMPC():
 		pi_loss = self.update_pi(zs)
 		if step % self.cfg.update_freq == 0:
 			h.ema(self.model, self.model_target, self.cfg.tau)
+		if self.cfg.CURIOSITY_ENCODER:
+			curiosity_encoder_loss = self.update_curiosity_encoder(obs, next_obses, action)
 
 		self.model.eval()
 
@@ -377,25 +397,42 @@ class TDMPC():
 		else:
 			mean_valuable_action = 0.0
 
-		return {'consistency_loss': float(consistency_loss.mean().item()),
-				'reward_loss': float(reward_loss.mean().item()),
-				'value_loss': float(value_loss.mean().item()),
-				'pi_loss': pi_loss,
-				'total_loss': float(total_loss.mean().item()),
-				'weighted_loss': float(weighted_loss.mean().item()),
-				'grad_norm': float(grad_norm),
-				'action_type': mean_action_type,
-				'valuable_action': mean_valuable_action}
-
+		if self.cfg.CURIOSITY_ENCODER:
+			return {'consistency_loss': float(consistency_loss.mean().item()),
+					'reward_loss': float(reward_loss.mean().item()),
+					'value_loss': float(value_loss.mean().item()),
+					'pi_loss': pi_loss,
+					'total_loss': float(total_loss.mean().item()),
+					'weighted_loss': float(weighted_loss.mean().item()),
+					'grad_norm': float(grad_norm),
+					'action_type': mean_action_type,
+					'valuable_action': mean_valuable_action,
+					'curiosity_encoder_loss': curiosity_encoder_loss}
+		else:
+			return {'consistency_loss': float(consistency_loss.mean().item()),
+					'reward_loss': float(reward_loss.mean().item()),
+					'value_loss': float(value_loss.mean().item()),
+					'pi_loss': pi_loss,
+					'total_loss': float(total_loss.mean().item()),
+					'weighted_loss': float(weighted_loss.mean().item()),
+					'grad_norm': float(grad_norm),
+					'action_type': mean_action_type,
+					'valuable_action': mean_valuable_action}
 
 	def calc_int_reward(self, obs, action):
 		obs = torch.tensor(obs, dtype=torch.float32, device=self.device).unsqueeze(0)
 		self.prev_obs = torch.tensor(self.prev_obs, dtype=torch.float32, device=self.device).unsqueeze(0)
 
-		real_next_inputs_feature = self.model.h(obs)
+		if self.cfg.CURIOSITY_ENCODER:
+			real_next_inputs_feature = self.model.h(obs, int_reward=True)
 
-		real_current_inputs_feature = self.model.h(self.prev_obs)
-		pred_next_inputs_feature, _ = self.model.next(real_current_inputs_feature, action.unsqueeze(0))
+			real_current_inputs_feature = self.model.h(self.prev_obs, int_reward=True)
+			pred_next_inputs_feature, _ = self.model.next(real_current_inputs_feature, action.unsqueeze(0))
+		else:
+			real_next_inputs_feature = self.model.h(obs)
+
+			real_current_inputs_feature = self.model.h(self.prev_obs)
+			pred_next_inputs_feature, _ = self.model.next(real_current_inputs_feature, action.unsqueeze(0))
 
 		prediction_error = self.mse_loss(real_next_inputs_feature, pred_next_inputs_feature)
 		int_rewards = self.cfg.BETA * 0.5 * prediction_error
