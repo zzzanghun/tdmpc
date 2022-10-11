@@ -308,14 +308,15 @@ class TDMPC():
 		return pi_loss.item()
 
 	def update_curiosity_encoder(self, obs, next_obses, action):
+		self.curiosity_encoder_optim.zero_grad(set_to_none=True)
 		z = self.model.h(self.aug(obs), int_reward=True)
 
 		consistency_loss = 0
 
 		for t in range(self.cfg.horizon):
 			# Predictions
+			z, reward_pred = self.model.next(z, action[t])
 			with torch.no_grad():
-				z, reward_pred = self.model.next(z, action[t])
 				next_obs = self.aug(next_obses[t])
 				next_z = self.model_target.h(next_obs, int_reward=True)
 
