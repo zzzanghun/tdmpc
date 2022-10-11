@@ -107,14 +107,8 @@ def enc(cfg):
 		out_shape = _get_out_shape((C, cfg.img_size, cfg.img_size), layers)
 		layers.extend([Flatten(), nn.Linear(np.prod(out_shape), cfg.latent_dim)])
 	else:
-		if cfg.REPRESENTATION_PARAMETERIZED:
-			layers = [nn.Linear(cfg.obs_shape[0], cfg.enc_dim),
-					  nn.Linear(cfg.enc_dim, cfg.latent_dim),
-					  nn.Linear(cfg.latent_dim, cfg.latent_dim),
-					  nn.Linear(cfg.latent_dim, cfg.latent_dim)]
-		else:
-			layers = [nn.Linear(cfg.obs_shape[0], cfg.enc_dim), nn.ELU(),
-					  nn.Linear(cfg.enc_dim, cfg.latent_dim)]
+		layers = [nn.Linear(cfg.obs_shape[0], cfg.enc_dim), nn.ELU(),
+				  nn.Linear(cfg.enc_dim, cfg.latent_dim)]
 	return nn.Sequential(*layers)
 
 
