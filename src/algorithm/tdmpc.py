@@ -322,8 +322,8 @@ class TDMPC():
 
 			# Losses
 			rho = (self.cfg.rho ** t)
-			consistency_loss += rho * h.mse(z, next_z).mean()
-
+			consistency_loss += rho * torch.mean(h.mse(z, next_z), dim=1, keepdim=True)
+		consistency_loss = consistency_loss.mean()
 		consistency_loss = self.cfg.consistency_coef * consistency_loss.clamp(max=1e4)
 		consistency_loss.backward()
 		torch.nn.utils.clip_grad_norm_(self.model._curiosity_encoder.parameters(), self.cfg.grad_clip_norm,
@@ -436,7 +436,7 @@ class TDMPC():
 			real_current_inputs_feature = self.model.h(self.prev_obs)
 			pred_next_inputs_feature, _ = self.model.next(real_current_inputs_feature, action.unsqueeze(0))
 
-		prediction_error = self.mse_loss(real_next_inputs_feature, pred_next_inputs_feature)
+		prediction_error = torch.mean(h.mse(pred_next_inputs_feature, real_next_inputs_feature), dim=1, keepdim=True).mean()
 		int_rewards = self.cfg.BETA * 0.5 * prediction_error
 
 		return int_rewards.detach()
