@@ -322,7 +322,7 @@ class TDMPC():
 
 			# Losses
 			rho = (self.cfg.rho ** t)
-			consistency_loss += rho * torch.mean(h.mse(z, next_z), dim=1, keepdim=True)
+			consistency_loss += rho * h.mse(z, next_z).mean()
 
 		consistency_loss.backward()
 		torch.nn.utils.clip_grad_norm_(self.model._curiosity_encoder.parameters(), self.cfg.grad_clip_norm,
