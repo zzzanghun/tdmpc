@@ -323,7 +323,7 @@ class TDMPC():
 			# Losses
 			rho = (self.cfg.rho ** t)
 			consistency_loss += rho * torch.mean(h.mse(z, next_z), dim=1, keepdim=True)
-		consistency_loss = self.cfg.consistency_coef * consistency_loss.clamp(max=1e4)
+		consistency_loss = self.cfg.CURIOSITY_ENCODER_COEF * consistency_loss.clamp(max=1e4)
 		consistency_loss = consistency_loss.mean()
 		consistency_loss.register_hook(lambda grad: grad * (1 / self.cfg.horizon))
 		consistency_loss.backward()
