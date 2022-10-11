@@ -383,7 +383,7 @@ class TDMPC():
 
 		# Update policy + target network
 		pi_loss = self.update_pi(zs)
-		if self.cfg.CURIOSITY_ENCODER:
+		if self.cfg.CURIOSITY_ENCODER and step % self.cfg.episode_length:
 			curiosity_encoder_loss = self.update_curiosity_encoder(obs, next_obses, action)
 		if step % self.cfg.update_freq == 0:
 			h.ema(self.model, self.model_target, self.cfg.tau)
