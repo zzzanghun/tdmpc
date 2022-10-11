@@ -315,7 +315,7 @@ class TDMPC():
 
 		for t in range(self.cfg.horizon):
 			# Predictions
-			z, reward_pred = self.model.next(z, action[t])
+			z, _ = self.model.next(z, action[t])
 			with torch.no_grad():
 				next_obs = self.aug(next_obses[t])
 				next_z = self.model_target.h(next_obs, int_reward=True)
@@ -323,8 +323,9 @@ class TDMPC():
 			# Losses
 			rho = (self.cfg.rho ** t)
 			consistency_loss += rho * torch.mean(h.mse(z, next_z), dim=1, keepdim=True)
-		consistency_loss = consistency_loss.mean()
 		consistency_loss = self.cfg.consistency_coef * consistency_loss.clamp(max=1e4)
+		consistency_loss = consistency_loss.mean()
+		consistency_loss.register_hook(lambda grad: grad * (1 / self.cfg.horizon))
 		consistency_loss.backward()
 		torch.nn.utils.clip_grad_norm_(self.model._curiosity_encoder.parameters(), self.cfg.grad_clip_norm,
 												   error_if_nonfinite=False)
@@ -382,10 +383,10 @@ class TDMPC():
 
 		# Update policy + target network
 		pi_loss = self.update_pi(zs)
-		if step % self.cfg.update_freq == 0:
-			h.ema(self.model, self.model_target, self.cfg.tau)
 		if self.cfg.CURIOSITY_ENCODER:
 			curiosity_encoder_loss = self.update_curiosity_encoder(obs, next_obses, action)
+		if step % self.cfg.update_freq == 0:
+			h.ema(self.model, self.model_target, self.cfg.tau)
 
 		self.model.eval()
 
