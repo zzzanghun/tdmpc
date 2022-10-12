@@ -440,11 +440,6 @@ class TDMPC():
 		prediction_error = torch.mean(h.mse(pred_next_inputs_feature, real_next_inputs_feature), dim=1, keepdim=True).mean()
 		int_rewards = self.cfg.BETA * 0.5 * prediction_error
 
-		if self.cfg.CURIOSITY_ENCODER_FLAG_INT_REWARD:
-			if int_rewards > 10:
-				self.cfg.CURIOSITY_ENCODER = False
-				self.cfg.CURIOSITY_DRIVEN_EXPLORATION = False
-
 		return int_rewards.detach()
 
 	def load_judge_q(self):

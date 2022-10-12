@@ -93,6 +93,10 @@ def train(cfg):
 				cfg.CURIOSITY_ENCODER = False
 				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
 				cfg.CURIOSITY_ENCODER_FLAG_TIME = False
+			if cfg.CURIOSITY_ENCODER_FLAG_INT_REWARD and int_reward > 100:
+				cfg.CURIOSITY_ENCODER = False
+				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
+				cfg.CURIOSITY_ENCODER_FLAG_INT_REWARD = False
 			if cfg.CURIOSITY_DRIVEN_EXPLORATION:
 				common_metrics = {
 					'episode': episode_idx,
