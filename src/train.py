@@ -89,6 +89,9 @@ def train(cfg):
 			# Log training episode
 			episode_idx += 1
 			env_step = int(step*cfg.action_repeat)
+			if cfg.CURIOSITY_ENCODER_FLAG_TIME:
+				cfg.CURIOSITY_ENCODER = False
+				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
 			if cfg.CURIOSITY_DRIVEN_EXPLORATION:
 				common_metrics = {
 					'episode': episode_idx,

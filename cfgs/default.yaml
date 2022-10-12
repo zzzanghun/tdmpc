@@ -65,6 +65,9 @@ COMPARISON_TEST: False
 BETA: 0.01
 JUDGE_Q: False
 
+CURIOSITY_ENCODER_FLAG_TIME: False
+CURIOSITY_ENCODER_FLAG_INT_REWARD: False
+
 # frequently change
 use_wandb: True
 wandb_project: none
