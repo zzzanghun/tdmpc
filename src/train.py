@@ -89,7 +89,7 @@ def train(cfg):
 			# Log training episode
 			episode_idx += 1
 			env_step = int(step*cfg.action_repeat)
-			if cfg.CURIOSITY_ENCODER_FLAG_TIME and env_step > 100000:
+			if cfg.CURIOSITY_ENCODER_FLAG_TIME and env_step > 150000:
 				cfg.CURIOSITY_ENCODER = False
 				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
 				cfg.CURIOSITY_ENCODER_FLAG_TIME = False
