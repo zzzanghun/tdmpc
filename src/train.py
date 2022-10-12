@@ -89,14 +89,6 @@ def train(cfg):
 			# Log training episode
 			episode_idx += 1
 			env_step = int(step*cfg.action_repeat)
-			if cfg.CURIOSITY_ENCODER_FLAG_TIME and env_step > 150000:
-				cfg.CURIOSITY_ENCODER = False
-				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
-				cfg.CURIOSITY_ENCODER_FLAG_TIME = False
-			if cfg.CURIOSITY_ENCODER_FLAG_INT_REWARD and int_reward > 100:
-				cfg.CURIOSITY_ENCODER = False
-				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
-				cfg.CURIOSITY_ENCODER_FLAG_INT_REWARD = False
 			if cfg.CURIOSITY_DRIVEN_EXPLORATION:
 				common_metrics = {
 					'episode': episode_idx,
@@ -116,6 +108,16 @@ def train(cfg):
 					'episode_reward': episode.cumulative_reward
 				}
 			train_metrics.update(common_metrics)
+
+			if cfg.CURIOSITY_ENCODER_FLAG_TIME and env_step > 150000:
+				cfg.CURIOSITY_ENCODER = False
+				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
+				cfg.CURIOSITY_ENCODER_FLAG_TIME = False
+			if cfg.CURIOSITY_ENCODER_FLAG_INT_REWARD and sum(int_reward_deque) > 100:
+				cfg.CURIOSITY_ENCODER = False
+				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
+				cfg.CURIOSITY_ENCODER_FLAG_INT_REWARD = False
+				
 			L.log(train_metrics, category='train')
 
 			train_episode_results.append(float(episode.cumulative_reward))
