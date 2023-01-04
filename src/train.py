@@ -117,7 +117,7 @@ def train(cfg):
 				cfg.CURIOSITY_ENCODER = False
 				cfg.CURIOSITY_DRIVEN_EXPLORATION = False
 				cfg.CURIOSITY_ENCODER_FLAG_INT_REWARD = False
-				
+
 			L.log(train_metrics, category='train')
 
 			train_episode_results.append(float(episode.cumulative_reward))
