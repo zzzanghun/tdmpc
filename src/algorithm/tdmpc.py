@@ -431,13 +431,21 @@ class TDMPC():
 
 			real_current_inputs_feature = self.model.h(self.prev_obs, int_reward=True)
 			pred_next_inputs_feature, _ = self.model.next(real_current_inputs_feature, action.unsqueeze(0))
+			prediction_error = torch.mean(h.mse(pred_next_inputs_feature, real_next_inputs_feature), dim=1,
+										  keepdim=True).mean()
+		elif self.cfg.Q_CURIOSITY:
+			real_current_inputs_feature = self.model.h(self.prev_obs)
+			Q_value, _ = self.model.Q(real_current_inputs_feature, action)
+			target_Q_value, _ = self.model_target.Q(real_current_inputs_feature, action)
+			prediction_error = torch.mean(h.mse(Q_value, target_Q_value), dim=1, keepdim=True).mean()
 		else:
 			real_next_inputs_feature = self.model.h(obs)
 
 			real_current_inputs_feature = self.model.h(self.prev_obs)
 			pred_next_inputs_feature, _ = self.model.next(real_current_inputs_feature, action.unsqueeze(0))
+			prediction_error = torch.mean(h.mse(pred_next_inputs_feature, real_next_inputs_feature), dim=1,
+										  keepdim=True).mean()
 
-		prediction_error = torch.mean(h.mse(pred_next_inputs_feature, real_next_inputs_feature), dim=1, keepdim=True).mean()
 		int_rewards = self.cfg.BETA * 0.5 * prediction_error
 
 		return int_rewards.detach()
