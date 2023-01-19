@@ -68,6 +68,8 @@ JUDGE_Q: False
 CURIOSITY_ENCODER_FLAG_TIME: False
 CURIOSITY_ENCODER_FLAG_INT_REWARD: False
 
+Q_CURIOSITY: False
+
 # frequently change
 use_wandb: True
 wandb_project: none
