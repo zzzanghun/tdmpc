@@ -435,8 +435,8 @@ class TDMPC():
 										  keepdim=True).mean()
 		elif self.cfg.Q_CURIOSITY:
 			real_current_inputs_feature = self.model.h(self.prev_obs)
-			Q_value, _ = self.model.Q(real_current_inputs_feature, action)
-			target_Q_value, _ = self.model_target.Q(real_current_inputs_feature, action)
+			Q_value, _ = self.model.Q(real_current_inputs_feature, action.unsqueeze(0))
+			target_Q_value, _ = self.model_target.Q(real_current_inputs_feature, action.unsqueeze(0))
 			prediction_error = torch.mean(h.mse(Q_value, target_Q_value), dim=1, keepdim=True).mean()
 		else:
 			real_next_inputs_feature = self.model.h(obs)
