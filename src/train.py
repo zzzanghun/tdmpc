@@ -2,6 +2,7 @@ import warnings
 warnings.filterwarnings('ignore')
 import os
 os.environ['MKL_SERVICE_FORCE_INTEL'] = '1'
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 os.environ['MUJOCO_GL'] = 'egl'  #glfw
 import torch
 import numpy as np
