@@ -2,8 +2,8 @@ import warnings
 warnings.filterwarnings('ignore')
 import os
 os.environ['MKL_SERVICE_FORCE_INTEL'] = '1'
-os.environ['KMP_DUPLICATE_LIB_OK']='True'
-os.environ['MUJOCO_GL'] = 'egl'  #glfw
+os.environ['MUJOCO_GL'] = 'glfw'  #glfw
+
 import torch
 import numpy as np
 import gym
@@ -156,4 +156,4 @@ def train(cfg):
 
 
 if __name__ == '__main__':
-	train_result = train(parse_cfg(Path().cwd() / __CONFIG__))
+	train_result = train(parse_cfg(Path().cwd().parent / __CONFIG__))
