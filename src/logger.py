@@ -94,7 +94,7 @@ class Logger(object):
 		project, entity = cfg.get('wandb_project', 'none'), cfg.get('wandb_entity', 'none')
 		run_offline = not cfg.get('use_wandb', False) or project == 'none' or entity == 'none'
 		if run_offline:
-			print(colored('Logs will be saved locally.', 'yellow', attrs=['bold']))
+			print(colored('Logs will be saved locally.', 'yellow'))
 			self._wandb = None
 		else:
 			try:
@@ -107,10 +107,10 @@ class Logger(object):
 						tags=cfg_to_group(cfg, return_list=True) + [f'seed:{cfg.seed}'],
 						dir=self._log_dir,
 						config=OmegaConf.to_container(cfg, resolve=True))
-				print(colored('Logs will be synced with wandb.', 'blue', attrs=['bold']))
+				print(colored('Logs will be synced with wandb.', 'blue'))
 				self._wandb = wandb
 			except:
-				print(colored('Warning: failed to init wandb. Logs will be saved locally.', 'yellow'), attrs=['bold'])
+				print(colored('Warning: failed to init wandb. Logs will be saved locally.', 'yellow'))
 				self._wandb = None
 		self._video = VideoRecorder(log_dir, self._wandb) if self._wandb and cfg.save_video else None
 

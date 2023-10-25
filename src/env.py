@@ -237,9 +237,18 @@ class TimeStepToGymWrapper(object):
 class DefaultDictWrapper(gym.Wrapper):
 	def __init__(self, env):
 		gym.Wrapper.__init__(self, env)
+		self.total_step = 0
 
 	def step(self, action):
+		self.total_step += 1
 		obs, reward, done, info = self.env.step(action)
+
+		if self.total_step > 100000:
+			reward = reward
+
+		if reward < 0:
+			reward = 0
+
 		return obs, reward, done, defaultdict(float, info)
 
 
